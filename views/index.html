@@ -1,12 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Strength & Breach Checker</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    Secure Password Manager
-    <h1>hi</h1>
+  <div class="container">
+    <h2>Password Strength & Breach Checker</h2>
+
+    <!-- New field for app/website name -->
+    <div class="form-group">
+      <input type="text" id="appName" placeholder="Enter app/website name" />
+    </div>
+
+    <!-- Password input and buttons -->
+    <div class="form-group">
+      <input type="password" id="password" placeholder="Enter your password" />
+      <button id="checkBtn">Check Breach</button>
+      <button id="suggestBtn">Suggest Strong Password</button>
+    </div>
+
+    <!-- Strength meter -->
+    <div id="strength">
+      <p>Strength: <span id="strengthText">-</span></p>
+      <div id="strengthMeter"></div>
+    </div>
+
+    <!-- Breach and suggestion results -->
+    <div id="breachResult"></div>
+    <div id="suggestion"></div>
+  </div>
+
+  <script src="/main.js"></script>
 </body>
 </html>
