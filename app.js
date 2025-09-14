@@ -1,6 +1,6 @@
 const express = require("express");
 const path = require("path");
-// const connectDB = require("./config/db");
+const connectDB = require("./config/db");
 require("dotenv").config();
 
 const breachRoutes = require("./routes/breachRoutes");
@@ -9,7 +9,7 @@ const strengthRoutes = require("./routes/strengthRoutes");
 const app = express();
 
 
-// connectDB();
+connectDB();
 
 
 app.use(express.json());
