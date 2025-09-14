@@ -81,8 +81,12 @@ Run a specific test:
 
 npx mocha tests/unitTests/strengthController.test.js --exit
 
+6. Architecture and use case diagrams:
 
-6.References
+link- https://excalidraw.com/#json=K9actp4xYhnBcFzWj5b-6,kzARM2Mc02vVYHN-mhEykw
+
+
+7.References
 
 HaveIBeenPwned API
 
