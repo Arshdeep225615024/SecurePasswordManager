@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "mocha tests/**/*.test.js --timeout 5000"
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "mocha tests/**/*.test.js --timeout 5000",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "repository": {
     "type": "git",
@@ -13,7 +19,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/Arshdeep225615024/SecurePasswordManager/issues"
   },
@@ -25,9 +30,11 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.1"
+    "mongoose": "^8.18.1",
+    "socket.io": "^4.8.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.1",
     "chai": "^6.0.1",
     "mocha": "^11.7.2",
     "nodemon": "^3.1.10",
