@@ -70,7 +70,7 @@
           <button id="suggestBtn" type="button" class="btn btn--secondary">Suggest Strong Password</button>
           <button id="copyBtn" type="button" class="btn btn--ghost">Copy</button>
           <button id="resetBtn" type="reset" class="btn btn--ghost">Reset</button>
-          <button id="savePasswordBtn" type="button" class="btn btn--primary">Save Password</button>
+          <button id="saveBtn" type="button" class="btn btn--primary">Save Password</button>
         </div>
 
         <!-- Strength meter -->
@@ -91,6 +91,32 @@
         <div id="suggestion" class="suggestion" aria-live="polite"></div>
       </form>
     </section>
+
+    <!-- Saved Passwords -->
+    <section class="card" id="vaultCard" aria-labelledby="vaultTitle">
+      <h2 id="vaultTitle" style="margin:0 0 8px 0;">Saved Passwords</h2>
+
+      <div id="vaultStatus" class="result" aria-live="polite">
+        Loading your saved passwords…
+      </div>
+
+      <div class="vault">
+        <table class="vault__table" id="vaultTable" role="table" aria-label="Saved passwords">
+          <thead>
+            <tr role="row">
+              <th role="columnheader">App</th>
+              <th role="columnheader">Username</th>
+              <th role="columnheader">Password</th>
+              <th role="columnheader" style="width:110px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="vaultBody" role="rowgroup">
+            <!-- rows inserted by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
 
     <footer class="app__footer">
       <small>Built for promoting healthier cybersecurity practices amongst the general public.✨</small>
