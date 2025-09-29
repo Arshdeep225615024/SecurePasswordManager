@@ -4,3 +4,7 @@ playwright-report/
 test-results/
 
 node_modules/
+
+# macOS junk
+.DS_Store
+**/.DS_Store
