@@ -1,11 +1,11 @@
-// routes/passwordRoutes.js
-const express = require('express');
-const { savePassword, getPasswords, deletePassword } = require('../controllers/passwordController');
+const express = require("express");
+const { savePassword, getPasswords, deletePassword } = require("../controllers/passwordController");
+const authMiddleware = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
-router.post('/passwords', savePassword);       // <-- change made here
-router.get('/passwords', getPasswords);
-router.delete('/passwords/:id', deletePassword);
+router.post("/save-password", authMiddleware, savePassword);
+router.get("/passwords", authMiddleware, getPasswords);
+router.delete("/passwords/:id", authMiddleware, deletePassword);
 
 module.exports = router;

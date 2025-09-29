@@ -1,12 +1,6 @@
 // ---------- Utilities ----------
 const $ = (sel) => document.querySelector(sel);
 
-// build headers with optional JWT if you store it after login
-function authHeaders(extra = {}) {
-  const token = localStorage.getItem("token");
-  return token ? { ...extra, Authorization: `Bearer ${token}` } : { ...extra };
-}
-
 const toast = (msg) => {
   const t = $("#toast");
   t.textContent = msg;
@@ -135,85 +129,6 @@ function toggleTheme() {
   btn.setAttribute("aria-pressed", state.themeDark ? "true" : "false");
 }
 
-// --- Socket.io client ---
-const socket = io(); // same-origin
-
-socket.on("connect", () => {
-  console.log("Socket connected ✅", socket.id);
-});
-
-socket.on("breach-detected", (evt) => {
-  // evt: { account, source, time }
-  const when = new Date(evt.time || Date.now()).toLocaleString();
-  toast(`Breach detected for ${evt.account} via ${evt.source} (${when})`);
-  showRealtimeBanner(evt); // optional banner
-});
-
-// Optional tiny banner
-function showRealtimeBanner(evt) {
-  let b = document.getElementById("rtBanner");
-  if (!b) {
-    b = document.createElement("div");
-    b.id = "rtBanner";
-    b.className = "rt-banner";
-    document.body.appendChild(b);
-  }
-  b.textContent = `⚠️ Breach detected for ${evt.account} via ${evt.source}`;
-  b.style.display = "block";
-  setTimeout(() => (b.style.display = "none"), 6000);
-}
-
-async function refreshVault() {
-  const status = document.getElementById("vaultStatus");
-  const tbody = document.getElementById("vaultBody");
-  try {
-    status.textContent = "Loading your saved passwords…";
-    const res = await fetch("/api/passwords", {
-      headers: authHeaders({ "Accept": "application/json" })
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new Error(`GET /api/passwords failed: ${res.status} ${text}`);
-    }
-
-    const items = await res.json();
-    status.textContent = (items && items.length) ? "" : "No passwords saved yet.";
-    tbody.innerHTML = (items || []).map(({ _id, app, username /*, password */ }) => `
-      <tr data-id="${_id}">
-        <td>${app}</td>
-        <td>${username}</td>
-        <td>••••••••</td>
-        <td><button class="btn btn--danger btn--sm delete">Delete</button></td>
-      </tr>
-    `).join("");
-
-    // wire delete buttons
-    tbody.querySelectorAll(".delete").forEach(btn => {
-      btn.addEventListener("click", async (e) => {
-        const id = e.target.closest("tr")?.dataset?.id;
-        if (!id) return;
-        try {
-          const del = await fetch(`/api/passwords/${encodeURIComponent(id)}`, {
-            method: "DELETE",
-            headers: authHeaders()
-          });
-          if (!del.ok) throw new Error(`DELETE failed: ${del.status}`);
-          toast("Deleted");
-          refreshVault();
-        } catch (err) {
-          console.error("Delete failed:", err);
-          toast("Delete failed");
-        }
-      });
-    });
-
-  } catch (err) {
-    console.error(err);
-    status.textContent = "Failed to load passwords (see console).";
-  }
-}
-
-
 function init() {
   const pwInput = $("#password");
   const appInput = $("#appName");
@@ -223,7 +138,7 @@ function init() {
   const resetBtn = $("#resetBtn");
   const visibilityBtn = $("#toggleVisibility");
   const userInput = $("#username");
-  const saveBtn = $("#saveBtn");
+  const saveBtn = $("#savePasswordBtn");
 
 
   // live strength
@@ -323,10 +238,9 @@ function init() {
       try {
         const res = await fetch("/api/passwords", {
           method: "POST",
-          headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ app: appName, username, password })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ appName, username, password })
         });
-
 
         // try to read JSON to surface backend messages
         let data = null;
@@ -354,8 +268,6 @@ function init() {
 
 
 }
-
-refreshVault();
 
 document.addEventListener("DOMContentLoaded", init);
 

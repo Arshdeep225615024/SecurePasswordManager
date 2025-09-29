@@ -472,9 +472,3 @@ input:hover { border-color: color-mix(in srgb, var(--primary) 30%, var(--border)
   font-size: 0.9rem;
 }
 
-.rt-banner{
-  position:fixed; left:50%; transform:translateX(-50%);
-  bottom:20px; padding:10px 16px; z-index:9999;
-  background:#ffe8e6; border:1px solid #ffb3ac; border-radius:8px;
-  font-weight:600;
-}
