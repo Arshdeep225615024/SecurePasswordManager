@@ -137,6 +137,9 @@ function init() {
   const copyBtn = $("#copyBtn");
   const resetBtn = $("#resetBtn");
   const visibilityBtn = $("#toggleVisibility");
+  const userInput = $("#username");
+  const saveBtn = $("#savePasswordBtn");
+
 
   // live strength
   let debounce;
@@ -212,6 +215,58 @@ function init() {
 
   // initial render
   applyStrengthUI({ score: 0, label: "—", tips: [] });
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", async () => {
+      const appName = ($("#appName").value || "").trim();
+      const username = ($("#username").value || "").trim();
+      const password = ($("#password").value || "").trim();
+
+      if (!appName || !username || !password) {
+        return toast("App, username and password are required");
+      }
+
+      // Optional: block very weak passwords (score < 2)
+      const { score } = evaluateStrength(password);
+      if (score < 2) return toast("Password too weak to save (aim Fair+)");
+
+      // simple loading state
+      const prev = saveBtn.textContent;
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving…";
+
+      try {
+        const res = await fetch("/api/passwords", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ appName, username, password })
+        });
+
+        // try to read JSON to surface backend messages
+        let data = null;
+        try { data = await res.json(); } catch { }
+
+        if (!res.ok) {
+          const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
+          console.error("Save failed:", msg);
+          return toast(`Save failed: ${msg}`);
+        }
+
+        toast(`✅ Saved for ${data.appName || appName}`);
+        // optional clears:
+        // $("#password").value = "";
+        // $("#appName").value = ""; $("#username").value = "";
+      } catch (err) {
+        console.error(err);
+        toast("Network error while saving");
+      } finally {
+        saveBtn.textContent = prev;
+        saveBtn.disabled = false;
+      }
+    });
+  }
+
+
 }
 
 document.addEventListener("DOMContentLoaded", init);
@@ -233,7 +288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => t.classList.remove("toast--show"), 1600);
   };
 
-  if (login)  login.addEventListener("click",  () => say("Log in clicked"));
+  if (login) login.addEventListener("click", () => say("Log in clicked"));
   if (signup) signup.addEventListener("click", () => say("Sign up clicked"));
 });
 
