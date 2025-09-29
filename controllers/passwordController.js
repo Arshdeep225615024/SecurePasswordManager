@@ -15,6 +15,7 @@ const savePassword = async (req, res) => {
       appName,
       username,
       password: encrypted,
+      userId: req.user.id, // attach logged-in user ID
     });
 
     await newPwd.save();
@@ -28,10 +29,10 @@ const savePassword = async (req, res) => {
 
 const getPasswords = async (req, res) => {
   try {
-    const saved = await Password.find();
+    const saved = await Password.find({ userId: req.user.id }); // only this user's passwords
 
     const decrypted = saved.map((entry) => ({
-        id: entry._id,
+      id: entry._id,
       appName: entry.appName,
       username: entry.username,
       password: decryptPassword(entry.password),
@@ -44,16 +45,21 @@ const getPasswords = async (req, res) => {
   }
 };
 
+
 const deletePassword = async (req, res) => {
-    try {
-      const { id } = req.params;
-      await Password.findByIdAndDelete(id);
-      res.json({ message: "🗑️ Password deleted successfully" });
-    } catch (err) {
-      console.error("Delete password error:", err.message);
-      res.status(500).json({ error: "Failed to delete password" });
+  try {
+    const { id } = req.params;
+    const deleted = await Password.findOneAndDelete({ _id: id, userId: req.user.id }); 
+    if (!deleted) {
+      return res.status(404).json({ error: "Password not found or unauthorized" });
     }
-  };
+    res.json({ message: "🗑️ Password deleted successfully" });
+  } catch (err) {
+    console.error("Delete password error:", err.message);
+    res.status(500).json({ error: "Failed to delete password" });
+  }
+};
+
   
 
 module.exports = { savePassword, getPasswords, deletePassword };
