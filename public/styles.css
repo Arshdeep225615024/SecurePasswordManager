@@ -472,3 +472,129 @@ input:hover { border-color: color-mix(in srgb, var(--primary) 30%, var(--border)
   font-size: 0.9rem;
 }
 
+/* ===== Password Vault Sidebar ===== */
+.with-sidebar {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+}
+
+.sidebar {
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 12px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  color: var(--text);
+}
+
+.vault-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vault-list li {
+  background: #fff;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.vault-list strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.vault-list small {
+  color: var(--muted);
+}
+
+.vault-list button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+
+/* ===== Password Vault Sidebar ===== */
+.with-sidebar {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+}
+
+.sidebar {
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 12px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+
+.sidebar h2 {
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  color: var(--text);
+}
+
+.vault-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.vault-list li {
+  background: #fff;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.vault-list strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.vault-list small {
+  color: var(--muted);
+}
+
+.vault-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.vault-list button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.password-hidden {
+  font-family: monospace;
+  letter-spacing: 2px;
+  color: var(--muted);
+}

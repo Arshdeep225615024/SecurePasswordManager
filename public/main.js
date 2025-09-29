@@ -46,7 +46,7 @@ function evaluateStrength(pw) {
   if (!hasUpper || !hasLower) tips.push("Mix UPPER + lower case.");
   if (!hasDigit) tips.push("Add a number.");
   if (!hasSymbol) tips.push("Add a symbol.");
-  if (commonPatterns) tips.push("Avoid common words (e.g., 'password').");
+  if (commonPatterns) tips.push("Avoid common words.");
   if (repeated) tips.push("Avoid repeated characters.");
 
   return { score, label: labels[score], tips };
@@ -119,10 +119,93 @@ function setLoading(el, loading, text = "Checking…") {
   }
 }
 
+// ---------- Password Vault ----------
+async function loadPasswords() {
+  const list = $("#passwordList");
+  if (!list) return;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    list.innerHTML = "<li>Please log in to see saved passwords.</li>";
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/passwords", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Failed to load");
+
+    if (!data.length) {
+      list.innerHTML = "<li>No passwords saved yet.</li>";
+      return;
+    }
+
+    list.innerHTML = "";
+    data.forEach(pw => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        <div>
+          <strong>${pw.appName}</strong>
+          <small>${pw.username}</small><br>
+          <span class="password-hidden" id="pw-${pw.id}">••••••••</span>
+        </div>
+        <div class="vault-actions">
+          <button class="showBtn" data-id="${pw.id}" data-password="${pw.password}">👁️</button>
+          <button class="deleteBtn" data-id="${pw.id}">❌</button>
+        </div>
+      `;
+      list.appendChild(li);
+    });
+
+    // show/hide handlers
+    document.querySelectorAll(".showBtn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const span = $(`#pw-${id}`);
+        if (span.textContent === "••••••••") {
+          span.textContent = btn.dataset.password;
+          btn.textContent = "🙈";
+        } else {
+          span.textContent = "••••••••";
+          btn.textContent = "👁️";
+        }
+      });
+    });
+
+    // delete handlers
+    document.querySelectorAll(".deleteBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        if (!confirm("Delete this password?")) return;
+
+        try {
+          const del = await fetch(`/api/passwords/${id}`, {
+            method: "DELETE",
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+          if (!del.ok) {
+            const err = await del.json();
+            return toast("Delete failed: " + (err.error || del.statusText));
+          }
+          toast("Deleted successfully");
+          loadPasswords();
+        } catch {
+          toast("Network error while deleting");
+        }
+      });
+    });
+  } catch (err) {
+    console.error("Error loading passwords:", err);
+    list.innerHTML = "<li>Error loading passwords.</li>";
+  }
+}
+
 // ---------- Init ----------
 function init() {
   const pwInput = $("#password");
-  const appInput = $("#appName");
   const checkBtn = $("#checkBtn");
   const suggestBtn = $("#suggestBtn");
   const copyBtn = $("#copyBtn");
@@ -213,6 +296,7 @@ function init() {
 
         if (!res.ok) return toast(`Save failed: ${data.error || res.statusText}`);
         toast(`✅ Saved for ${data.appName || appName}`);
+        loadPasswords(); // refresh vault
       } catch {
         toast("Network error while saving");
       } finally {
@@ -235,6 +319,7 @@ function init() {
 
   // initial render
   applyStrengthUI({ score: 0, label: "—", tips: [] });
+  loadPasswords(); // load vault on start
 }
 
 document.addEventListener("DOMContentLoaded", init);

@@ -24,58 +24,70 @@
     </div>
   </nav>
 
-  <main class="app">
-    <header class="app__header">
-      <h1 class="app__title">Password Strength & Breach Checker</h1>
-      <p class="app__tagline">
-        🔒 Check password strength, detect breaches, generate secure suggestions.
-      </p>
-    </header>
+  <main class="app with-sidebar">
+    <!-- Sidebar (Password Vault) -->
+    <aside class="sidebar" id="vault">
+      <h2>Your Saved Passwords</h2>
+      <ul id="passwordList" class="vault-list">
+        <li>Log in to see your saved passwords.</li>
+      </ul>
+    </aside>
 
-    <section class="card">
-      <form id="pwForm" class="grid" novalidate>
-        <!-- Username -->
-        <label class="field">
-          <span class="field__label">Username / Email</span>
-          <input id="username" name="username" type="text" placeholder="e.g., you@example.com" autocomplete="username" />
-        </label>
+    <!-- Main content -->
+    <section class="app__content">
+      <header class="app__header">
+        <h1 class="app__title">Password Strength & Breach Checker</h1>
+        <p class="app__tagline">
+          🔒 Check password strength, detect breaches, generate secure suggestions.
+        </p>
+      </header>
 
-        <!-- App -->
-        <label class="field">
-          <span class="field__label">App / Website</span>
-          <input id="appName" name="appName" type="text" placeholder="e.g., Gmail" autocomplete="off" />
-        </label>
+      <section class="card">
+        <form id="pwForm" class="grid" novalidate>
+          <!-- Username -->
+          <label class="field">
+            <span class="field__label">Username / Email</span>
+            <input id="username" name="username" type="text" placeholder="e.g., you@example.com"
+              autocomplete="username" />
+          </label>
 
-        <!-- Password -->
-        <label class="field field--password">
-          <span class="field__label">Password</span>
-          <div class="field__control">
-            <input id="password" name="password" type="password" placeholder="Enter your password" />
-            <button type="button" class="btn btn--ghost field__suffix" id="toggleVisibility">👁️</button>
+          <!-- App -->
+          <label class="field">
+            <span class="field__label">App / Website</span>
+            <input id="appName" name="appName" type="text" placeholder="e.g., Gmail" autocomplete="off" />
+          </label>
+
+          <!-- Password -->
+          <label class="field field--password">
+            <span class="field__label">Password</span>
+            <div class="field__control">
+              <input id="password" name="password" type="password" placeholder="Enter your password" />
+              <button type="button" class="btn btn--ghost field__suffix" id="toggleVisibility">👁️</button>
+            </div>
+          </label>
+
+          <!-- Actions -->
+          <div class="actions">
+            <button id="checkBtn" type="button" class="btn">Check Breach</button>
+            <button id="suggestBtn" type="button" class="btn btn--secondary">Suggest</button>
+            <button id="copyBtn" type="button" class="btn btn--ghost">Copy</button>
+            <button id="resetBtn" type="reset" class="btn btn--ghost">Reset</button>
+            <button id="savePasswordBtn" type="button" class="btn btn--primary">Save</button>
           </div>
-        </label>
 
-        <!-- Actions -->
-        <div class="actions">
-          <button id="checkBtn" type="button" class="btn">Check Breach</button>
-          <button id="suggestBtn" type="button" class="btn btn--secondary">Suggest</button>
-          <button id="copyBtn" type="button" class="btn btn--ghost">Copy</button>
-          <button id="resetBtn" type="reset" class="btn btn--ghost">Reset</button>
-          <button id="savePasswordBtn" type="button" class="btn btn--primary">Save</button>
-        </div>
+          <!-- Strength meter -->
+          <div class="strength">
+            <span class="strength__label">Strength:</span>
+            <span id="strengthText" class="strength__text">—</span>
+            <div id="strengthMeter" class="meter"><div class="meter__fill" id="strengthFill"></div></div>
+            <ul id="tips" class="tips"></ul>
+          </div>
 
-        <!-- Strength meter -->
-        <div class="strength">
-          <span class="strength__label">Strength:</span>
-          <span id="strengthText" class="strength__text">—</span>
-          <div id="strengthMeter" class="meter"><div class="meter__fill" id="strengthFill"></div></div>
-          <ul id="tips" class="tips"></ul>
-        </div>
-
-        <!-- Results -->
-        <div id="breachResult" class="result"></div>
-        <div id="suggestion" class="suggestion"></div>
-      </form>
+          <!-- Results -->
+          <div id="breachResult" class="result"></div>
+          <div id="suggestion" class="suggestion"></div>
+        </form>
+      </section>
     </section>
   </main>
 
