@@ -2,10 +2,12 @@ name: e2e
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [main]
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "0 17 * * *"   # optional nightly (5pm UTC)
 
 permissions:
   contents: read
@@ -13,6 +15,10 @@ permissions:
 concurrency:
   group: e2e-${{ github.ref }}
   cancel-in-progress: true
+
+# Put secret into env so we can use it in job "if:" without the 'secrets' parse issue
+env:
+  E2E_BASE_URL: ${{ secrets.E2E_BASE_URL }}
 
 jobs:
   mocked:
@@ -39,7 +45,8 @@ jobs:
           retention-days: 7
 
   live:
-    name: Playwright (live, hardcoded URL)
+    name: Playwright (live)
+    if: ${{ env.E2E_BASE_URL != '' }}   # run only if secret is set
     needs: mocked
     runs-on: ubuntu-latest
     steps:
@@ -52,11 +59,10 @@ jobs:
 
       - run: npm ci
       - run: npx playwright install --with-deps
-
       - name: Run live E2E
         env:
-          E2E_LIVE: '1'
-          E2E_BASE_URL: 'http://localhost:3000'  # <-- change this
+          E2E_LIVE: "1"
+          E2E_BASE_URL: ${{ env.E2E_BASE_URL }}
         run: npm run test:e2e
 
       - name: Upload HTML report (live)
