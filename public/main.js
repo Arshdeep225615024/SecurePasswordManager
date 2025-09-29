@@ -129,6 +129,35 @@ function toggleTheme() {
   btn.setAttribute("aria-pressed", state.themeDark ? "true" : "false");
 }
 
+// --- Socket.io client ---
+const socket = io(); // same-origin
+
+socket.on("connect", () => {
+  console.log("Socket connected ✅", socket.id);
+});
+
+socket.on("breach-detected", (evt) => {
+  // evt: { account, source, time }
+  const when = new Date(evt.time || Date.now()).toLocaleString();
+  toast(`Breach detected for ${evt.account} via ${evt.source} (${when})`);
+  showRealtimeBanner(evt); // optional banner
+});
+
+// Optional tiny banner
+function showRealtimeBanner(evt) {
+  let b = document.getElementById("rtBanner");
+  if (!b) {
+    b = document.createElement("div");
+    b.id = "rtBanner";
+    b.className = "rt-banner";
+    document.body.appendChild(b);
+  }
+  b.textContent = `⚠️ Breach detected for ${evt.account} via ${evt.source}`;
+  b.style.display = "block";
+  setTimeout(() => (b.style.display = "none"), 6000);
+}
+
+
 function init() {
   const pwInput = $("#password");
   const appInput = $("#appName");
