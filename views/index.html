@@ -13,15 +13,11 @@
   <nav class="nav" role="navigation" aria-label="Primary">
     <div class="nav__inner">
       <div class="nav__brand">
-        <a href="#" class="nav__logo" aria-label="SecurePasswordManager home">
+        <a href="/" class="nav__logo" aria-label="SecurePasswordManager home">
           <strong>SecurePasswordManager</strong>
         </a>
       </div>
-
       <div class="nav__actions">
-        <!-- (optional) keep your theme toggle in the navbar; remove if you prefer -->
-        <button id="themeToggle" class="btn btn--ghost nav__icon" aria-pressed="false" title="Toggle theme">🌓</button>
-
         <a href="/login" id="loginBtn" class="btn btn--outline">Log in</a>
         <a href="/signup" id="signupBtn" class="btn btn--primary">Sign up</a>
       </div>
@@ -32,119 +28,63 @@
     <header class="app__header">
       <h1 class="app__title">Password Strength & Breach Checker</h1>
       <p class="app__tagline">
-        🔒 Your first line of defense: check password strength & leaks instantly, generate secure suggestions, and stay
-        protected.
+        🔒 Check password strength, detect breaches, generate secure suggestions.
       </p>
-
     </header>
 
     <section class="card">
       <form id="pwForm" class="grid" novalidate>
+        <!-- Username -->
         <label class="field">
           <span class="field__label">Username / Email</span>
-          <input id="username" name="username" type="text" inputmode="email" placeholder="e.g., you@example.com"
-            autocomplete="username" />
+          <input id="username" name="username" type="text" placeholder="e.g., you@example.com" autocomplete="username" />
         </label>
 
-        <!-- App / website name -->
+        <!-- App -->
         <label class="field">
           <span class="field__label">App / Website</span>
-          <input id="appName" name="appName" type="text" inputmode="text" placeholder="e.g., Gmail"
-            autocomplete="off" />
+          <input id="appName" name="appName" type="text" placeholder="e.g., Gmail" autocomplete="off" />
         </label>
 
-        <!-- Password field with visibility toggle -->
+        <!-- Password -->
         <label class="field field--password">
           <span class="field__label">Password</span>
           <div class="field__control">
-            <input id="password" name="password" type="password" placeholder="Enter your password"
-              aria-describedby="strengthText" />
-            <button type="button" class="btn btn--ghost field__suffix" id="toggleVisibility" aria-label="Show password"
-              title="Show/Hide password">👁️</button>
+            <input id="password" name="password" type="password" placeholder="Enter your password" />
+            <button type="button" class="btn btn--ghost field__suffix" id="toggleVisibility">👁️</button>
           </div>
         </label>
 
         <!-- Actions -->
         <div class="actions">
           <button id="checkBtn" type="button" class="btn">Check Breach</button>
-          <button id="suggestBtn" type="button" class="btn btn--secondary">Suggest Strong Password</button>
+          <button id="suggestBtn" type="button" class="btn btn--secondary">Suggest</button>
           <button id="copyBtn" type="button" class="btn btn--ghost">Copy</button>
           <button id="resetBtn" type="reset" class="btn btn--ghost">Reset</button>
-          <button id="savePasswordBtn" type="button" class="btn btn--primary">Save Password</button>
+          <button id="savePasswordBtn" type="button" class="btn btn--primary">Save</button>
         </div>
 
         <!-- Strength meter -->
-        <div class="strength" aria-live="polite">
-          <div class="strength__row">
-            <span class="strength__label">Strength:</span>
-            <span id="strengthText" class="strength__text">—</span>
-          </div>
-          <div id="strengthMeter" class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0"
-            aria-label="Password strength">
-            <div class="meter__fill" id="strengthFill"></div>
-          </div>
+        <div class="strength">
+          <span class="strength__label">Strength:</span>
+          <span id="strengthText" class="strength__text">—</span>
+          <div id="strengthMeter" class="meter"><div class="meter__fill" id="strengthFill"></div></div>
           <ul id="tips" class="tips"></ul>
         </div>
 
         <!-- Results -->
-        <div id="breachResult" class="result" aria-live="polite"></div>
-        <div id="suggestion" class="suggestion" aria-live="polite"></div>
+        <div id="breachResult" class="result"></div>
+        <div id="suggestion" class="suggestion"></div>
       </form>
     </section>
-
-    <footer class="app__footer">
-      <small>Built for promoting healthier cybersecurity practices amongst the general public.✨</small>
-    </footer>
   </main>
-  <!-- Footer -->
-  <footer class="site-footer" role="contentinfo">
-    <div class="site-footer__inner">
-      <div class="site-footer__brand">
-        <div class="site-footer__logo"><strong>SecurePasswordManager</strong></div>
-        <p class="site-footer__tag">Build strong passwords. Stay ahead of breaches.</p>
-      </div>
 
-      <nav class="site-footer__links" aria-label="Footer links">
-        <div>
-          <h4>Product</h4>
-          <ul>
-            <li><a href="#">Password Checker</a></li>
-            <li><a href="#">Breach Lookup</a></li>
-            <li><a href="#">Generator</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="#">README & Docs</a></li>
-            <li><a href="#">SRS</a></li>
-            <li><a href="#">Changelog</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Privacy</a></li>
-            <li><a href="#">Terms</a></li>
-            <li><a href="#">Security</a></li>
-          </ul>
-        </div>
-      </nav>
-    </div>
-
-    <div class="site-footer__bottom">
-      <small>© <span id="year"></span> SecurePasswordManager — built for SIT725.</small>
-    </div>
+  <footer class="site-footer">
+    <small>© <span id="year"></span> SecurePasswordManager — SIT725</small>
   </footer>
 
-  <script>
-    // set footer year
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
-
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <div id="toast" class="toast"></div>
   <script src="/main.js"></script>
 </body>
-
 </html>

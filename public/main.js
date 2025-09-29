@@ -2,7 +2,13 @@
 const $ = (sel) => document.querySelector(sel);
 
 const toast = (msg) => {
-  const t = $("#toast");
+  const t = $("#toast") || (() => {
+    const d = document.createElement("div");
+    d.id = "toast";
+    d.className = "toast";
+    document.body.appendChild(d);
+    return d;
+  })();
   t.textContent = msg;
   t.classList.add("toast--show");
   setTimeout(() => t.classList.remove("toast--show"), 1800);
@@ -10,7 +16,7 @@ const toast = (msg) => {
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
 
-// ---------- Strength evaluation (lightweight heuristic) ----------
+// ---------- Strength evaluation ----------
 function evaluateStrength(pw) {
   if (!pw) return { score: 0, label: "Empty", tips: ["Enter a password to begin."] };
 
@@ -54,19 +60,16 @@ function generatePassword({ length = 16, symbols = true } = {}) {
   const syms = "!@#$%^&*()-_=+[]{};:,.?";
   const pool = upper + lower + digits + (symbols ? syms : "");
   let out = "";
-  // ensure complexity
   out += upper[Math.floor(Math.random() * upper.length)];
   out += lower[Math.floor(Math.random() * lower.length)];
   out += digits[Math.floor(Math.random() * digits.length)];
   if (symbols) out += syms[Math.floor(Math.random() * syms.length)];
   while (out.length < length) out += pool[Math.floor(Math.random() * pool.length)];
-  // shuffle
   return out.split("").sort(() => Math.random() - 0.5).join("");
 }
 
-// ---------- HIBP range API (optional) ----------
+// ---------- HIBP API ----------
 async function checkHIBP(pw) {
-  // k-anonymity: send only SHA1 prefix (first 5 chars)
   const sha1 = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(pw));
   const hex = Array.from(new Uint8Array(sha1)).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
   const prefix = hex.slice(0, 5);
@@ -76,22 +79,16 @@ async function checkHIBP(pw) {
     const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
     if (!res.ok) throw new Error("HIBP error");
     const text = await res.text();
-    const lines = text.split("\n");
-    const match = lines.find(line => line.startsWith(suffix));
+    const match = text.split("\n").find(line => line.startsWith(suffix));
     if (!match) return { pwned: false, count: 0 };
     const count = parseInt(match.split(":")[1].trim(), 10);
     return { pwned: true, count };
-  } catch (_e) {
-    // Fallback: let backend handle breach checks at /api/breach
+  } catch {
     return { pwned: null, count: 0 };
   }
 }
 
-// ---------- UI wiring ----------
-const state = {
-  themeDark: false,
-};
-
+// ---------- UI ----------
 function applyStrengthUI({ score, label, tips }) {
   const meter = $("#strengthMeter");
   const fill = $("#strengthFill");
@@ -111,24 +108,18 @@ function applyStrengthUI({ score, label, tips }) {
   });
 }
 
-function setLoading(el, loading) {
+function setLoading(el, loading, text = "Checking…") {
   if (loading) {
     el.dataset.oldText = el.textContent;
-    el.textContent = "Checking…";
+    el.textContent = text;
     el.disabled = true;
   } else {
-    el.textContent = el.dataset.oldText || "Check Breach";
+    el.textContent = el.dataset.oldText || "Submit";
     el.disabled = false;
   }
 }
 
-function toggleTheme() {
-  state.themeDark = !state.themeDark;
-  document.documentElement.classList.toggle("theme-dark", state.themeDark);
-  const btn = $("#themeToggle");
-  btn.setAttribute("aria-pressed", state.themeDark ? "true" : "false");
-}
-
+// ---------- Init ----------
 function init() {
   const pwInput = $("#password");
   const appInput = $("#appName");
@@ -137,9 +128,7 @@ function init() {
   const copyBtn = $("#copyBtn");
   const resetBtn = $("#resetBtn");
   const visibilityBtn = $("#toggleVisibility");
-  const userInput = $("#username");
   const saveBtn = $("#savePasswordBtn");
-
 
   // live strength
   let debounce;
@@ -148,25 +137,21 @@ function init() {
     debounce = setTimeout(() => applyStrengthUI(evaluateStrength(pwInput.value)), 90);
   });
 
-  // show/hide password
+  // toggle visibility
   visibilityBtn.addEventListener("click", () => {
     const isPw = pwInput.type === "password";
     pwInput.type = isPw ? "text" : "password";
     visibilityBtn.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
-    visibilityBtn.title = isPw ? "Hide password" : "Show password";
   });
 
-  // theme toggle
-  $("#themeToggle").addEventListener("click", toggleTheme);
-
-  // suggest strong password
+  // suggest password
   suggestBtn.addEventListener("click", () => {
     const suggestion = generatePassword({ length: 16, symbols: true });
     $("#suggestion").textContent = `Suggested: ${suggestion}`;
     toast("Generated a strong password");
   });
 
-  // copy current or suggested
+  // copy password
   copyBtn.addEventListener("click", async () => {
     const text = pwInput.value || ($("#suggestion").textContent.replace(/^Suggested:\s*/, "") || "");
     if (!text) return toast("Nothing to copy");
@@ -181,115 +166,75 @@ function init() {
     $("#suggestion").textContent = "";
   });
 
-  // check breach
+  // breach check
   checkBtn.addEventListener("click", async () => {
     const pw = pwInput.value;
     if (!pw) return toast("Enter a password first");
-    setLoading(checkBtn, true);
+    setLoading(checkBtn, true, "Checking…");
 
     const hibp = await checkHIBP(pw);
     if (hibp.pwned === true) {
-      $("#breachResult").innerHTML = `⚠️ Found in <b>${hibp.count.toLocaleString()}</b> breaches (HIBP). Consider changing it.`;
+      $("#breachResult").innerHTML = `⚠️ Found in <b>${hibp.count.toLocaleString()}</b> breaches.`;
     } else if (hibp.pwned === false) {
-      $("#breachResult").textContent = "✅ No matches found in HIBP range dataset.";
+      $("#breachResult").textContent = "✅ No matches found in HIBP.";
     } else {
-      // fallback to backend API if front-end HIBP failed or blocked by CORS
-      try {
-        const app = appInput.value || "unspecified";
-        const res = await fetch(`/api/breach?app=${encodeURIComponent(app)}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw }) });
-        const data = await res.json();
-        if (data && typeof data.pwnedCount === "number") {
-          $("#breachResult").innerHTML = data.pwnedCount > 0
-            ? `⚠️ Found in <b>${data.pwnedCount.toLocaleString()}</b> breaches.`
-            : "✅ No matches found.";
-        } else {
-          $("#breachResult").textContent = "ℹ️ Breach check unavailable.";
-        }
-      } catch {
-        $("#breachResult").textContent = "ℹ️ Breach check unavailable.";
-      }
+      $("#breachResult").textContent = "ℹ️ Breach check unavailable.";
     }
 
     setLoading(checkBtn, false);
   });
 
-  // initial render
-  applyStrengthUI({ score: 0, label: "—", tips: [] });
-
+  // save password
   if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
       const appName = ($("#appName").value || "").trim();
       const username = ($("#username").value || "").trim();
       const password = ($("#password").value || "").trim();
+      const token = localStorage.getItem("token");
 
-      if (!appName || !username || !password) {
-        return toast("App, username and password are required");
-      }
+      if (!token) return toast("Please log in first");
+      if (!appName || !username || !password) return toast("App, username and password are required");
 
-      // Optional: block very weak passwords (score < 2)
       const { score } = evaluateStrength(password);
-      if (score < 2) return toast("Password too weak to save (aim Fair+)");
+      if (score < 2) return toast("Password too weak to save");
 
-      // simple loading state
-      const prev = saveBtn.textContent;
-      saveBtn.disabled = true;
-      saveBtn.textContent = "Saving…";
+      setLoading(saveBtn, true, "Saving…");
 
       try {
-        const res = await fetch("/api/passwords", {
+        const res = await fetch("/api/save-password", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
           body: JSON.stringify({ appName, username, password })
         });
+        const data = await res.json();
 
-        // try to read JSON to surface backend messages
-        let data = null;
-        try { data = await res.json(); } catch { }
-
-        if (!res.ok) {
-          const msg = (data && (data.error || data.message)) || `HTTP ${res.status}`;
-          console.error("Save failed:", msg);
-          return toast(`Save failed: ${msg}`);
-        }
-
+        if (!res.ok) return toast(`Save failed: ${data.error || res.statusText}`);
         toast(`✅ Saved for ${data.appName || appName}`);
-        // optional clears:
-        // $("#password").value = "";
-        // $("#appName").value = ""; $("#username").value = "";
-      } catch (err) {
-        console.error(err);
+      } catch {
         toast("Network error while saving");
       } finally {
-        saveBtn.textContent = prev;
-        saveBtn.disabled = false;
+        setLoading(saveBtn, false);
       }
     });
   }
 
+  // navbar update if logged in
+  const nav = $(".nav__actions");
+  const token = localStorage.getItem("token");
+  if (token && nav) {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    nav.innerHTML = `<span>👤 ${user.fullName || user.email}</span> <button id="logoutBtn" class="btn btn--outline">Logout</button>`;
+    $("#logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "/login";
+    });
+  }
 
+  // initial render
+  applyStrengthUI({ score: 0, label: "—", tips: [] });
 }
 
 document.addEventListener("DOMContentLoaded", init);
-
-document.addEventListener("DOMContentLoaded", () => {
-  const login = document.getElementById("loginBtn");
-  const signup = document.getElementById("signupBtn");
-
-  const say = (msg) => {
-    const t = document.querySelector("#toast") || (() => {
-      const d = document.createElement("div");
-      d.id = "toast";
-      d.className = "toast";
-      document.body.appendChild(d);
-      return d;
-    })();
-    t.textContent = msg;
-    t.classList.add("toast--show");
-    setTimeout(() => t.classList.remove("toast--show"), 1600);
-  };
-
-  if (login) login.addEventListener("click", () => say("Log in clicked"));
-  if (signup) signup.addEventListener("click", () => say("Sign up clicked"));
-});
-
-

@@ -7,50 +7,35 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <nav class="nav" role="navigation" aria-label="Primary">
+  <nav class="nav">
     <div class="nav__inner">
-      <div class="nav__brand">
-        <a href="/" class="nav__logo"><strong>SecurePasswordManager</strong></a>
-      </div>
-      <div class="nav__actions">
-        <a href="/" class="btn btn--outline">Back</a>
-        <a href="/signup" class="btn btn--primary">Sign up</a>
-      </div>
+      <div class="nav__brand"><a href="/" class="nav__logo"><strong>SecurePasswordManager</strong></a></div>
+      <div class="nav__actions"><a href="/signup.html" class="btn btn--primary">Sign up</a></div>
     </div>
   </nav>
 
-  <main class="app" style="gap: 10px;">
+  <main class="app">
     <h1 class="app__title">Welcome back</h1>
-    <p class="app__tagline">Sign in to your account to manage your passwords securely.</p>
-
-    <section class="card auth-card" style="max-width: 480px;">
-      <form id="loginForm" class="grid" novalidate>
+    <section class="card auth-card">
+      <form id="loginForm" class="grid">
         <label class="field">
-          <span class="field__label">Email</span>
-          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
+          <span>Email</span>
+          <input id="email" type="email" required />
         </label>
-
-        <label class="field field--password">
-          <span class="field__label">Password</span>
+        <label class="field">
+          <span>Password</span>
           <div class="field__control">
-            <input id="password" name="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
-            <button type="button" class="btn btn--ghost field__suffix" id="togglePw" aria-label="Show password">👁️</button>
+            <input id="password" type="password" required />
+            <button type="button" id="togglePw">👁️</button>
           </div>
         </label>
-
-        <div id="loginError" class="error-message" aria-live="assertive" style="display:none;"></div>
-
-        <div class="actions" style="justify-content: flex-end;">
-          <button id="loginSubmit" type="submit" class="btn btn--primary">Log in</button>
-        </div>
-
-        <p style="text-align:center; color:var(--muted); margin: 4px 0 0;">Don't have an account? <a href="/signup">Sign up</a></p>
+        <div id="loginError" class="error-message"></div>
+        <button id="loginSubmit" type="submit" class="btn btn--primary">Log in</button>
       </form>
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
+  <div id="toast" class="toast"></div>
   <script src="/login.js"></script>
 </body>
 </html>

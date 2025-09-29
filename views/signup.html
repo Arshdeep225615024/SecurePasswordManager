@@ -7,83 +7,29 @@
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <!-- Navbar (same look; brand left, simple action right) -->
-  <nav class="nav" role="navigation" aria-label="Primary">
+  <nav class="nav">
     <div class="nav__inner">
-      <div class="nav__brand">
-        <a href="/" class="nav__logo"><strong>SecurePasswordManager</strong></a>
-      </div>
-      <div class="nav__actions">
-        <a href="/" class="btn btn--outline">Back</a>
-        <a href="#" class="btn btn--primary" aria-disabled="true">Sign up</a>
-      </div>
+      <div class="nav__brand"><a href="/" class="nav__logo"><strong>SecurePasswordManager</strong></a></div>
+      <div class="nav__actions"><a href="/login.html" class="btn btn--outline">Log in</a></div>
     </div>
   </nav>
 
-  <main class="app" style="gap: 10px;">
-    <h1 class="app__title">Create your account</h1>
-    <p class="app__tagline">One account to check strength, detect breaches, and generate strong passwords.</p>
-
-    <section class="card auth-card" style="max-width: 560px;">
-      <form id="signupForm" class="grid" novalidate>
-        <label class="field">
-          <span class="field__label">Full name</span>
-          <input id="fullName" name="fullName" type="text" placeholder="e.g., Sam Lee" autocomplete="name" required />
-        </label>
-
-        <label class="field">
-          <span class="field__label">Email</span>
-          <input id="email" name="email" type="email" placeholder="you@example.com" autocomplete="email" required />
-        </label>
-
-        <label class="field field--password">
-          <span class="field__label">Password</span>
-          <div class="field__control">
-            <input id="password" name="password" type="password" placeholder="Create a password" autocomplete="new-password" required />
-            <button type="button" class="btn btn--ghost field__suffix" id="togglePw" aria-label="Show password">👁️</button>
-          </div>
-        </label>
-
-        <label class="field field--password">
-          <span class="field__label">Confirm password</span>
-          <div class="field__control">
-            <input id="confirmPassword" name="confirmPassword" type="password" placeholder="Re-enter password" autocomplete="new-password" required />
-            <button type="button" class="btn btn--ghost field__suffix" id="toggleConfirm" aria-label="Show password">👁️</button>
-          </div>
-        </label>
-
-        <!-- Strength meter reused -->
-        <div class="strength">
-          <div class="strength__row">
-            <span class="strength__label">Strength:</span>
-            <span id="strengthText" class="strength__text">—</span>
-          </div>
-          <div id="strengthMeter" class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="0" aria-label="Password strength">
-            <div class="meter__fill" id="strengthFill"></div>
-          </div>
-          <ul id="tips" class="tips"></ul>
-        </div>
-
-        <div class="terms">
-          <label class="checkbox">
-            <input id="terms" type="checkbox" required />
-            <span>I agree to the <a href="#">Terms</a> and <a href="#">Privacy</a>.</span>
-          </label>
-        </div>
-
-        <div id="signupError" class="error-message" aria-live="assertive" style="display:none;"></div>
-
-        <div class="actions" style="justify-content: flex-end;">
-          <button id="signupSubmit" type="submit" class="btn btn--primary" disabled>Create account</button>
-        </div>
-
-        <p style="text-align:center; color:var(--muted); margin: 4px 0 0;">Already have an account? <a href="#">Log in</a></p>
+  <main class="app">
+    <h1>Create your account</h1>
+    <section class="card auth-card">
+      <form id="signupForm" class="grid">
+        <label><span>Full name</span><input id="fullName" type="text" required /></label>
+        <label><span>Email</span><input id="email" type="email" required /></label>
+        <label><span>Password</span><input id="password" type="password" required /></label>
+        <label><span>Confirm Password</span><input id="confirmPassword" type="password" required /></label>
+        <label><input id="terms" type="checkbox" /> I agree to Terms</label>
+        <div id="signupError" class="error-message"></div>
+        <button id="signupSubmit" type="submit" class="btn btn--primary" disabled>Sign up</button>
       </form>
     </section>
   </main>
 
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
-
+  <div id="toast" class="toast"></div>
   <script src="/signup.js"></script>
 </body>
 </html>
