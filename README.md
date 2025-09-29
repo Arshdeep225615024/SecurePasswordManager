@@ -89,10 +89,7 @@ link- https://excalidraw.com/#json=K9actp4xYhnBcFzWj5b-6,kzARM2Mc02vVYHN-mhEykw
 | Password Strength Meter | Breach Check Result |
 (https://docs.google.com/document/d/1HPT9gStHryZ1CFglNiIqZw11lUZygbIuZXI9uonFicQ/edit?usp=sharing)
 
-<<<<<<< HEAD
-=======
 
->>>>>>> frontenddev
 ## 📚 References
 - [HaveIBeenPwned API](https://haveibeenpwned.com/API/v3)
 - [Socket.io Documentation](https://socket.io/docs/v4/)
