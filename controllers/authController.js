@@ -1,58 +1,62 @@
 const User = require("../models/user");
+const jwt = require("jsonwebtoken");
 
-// User signup
+
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: "1h" });
+};
+
+
 const signup = async (req, res) => {
   try {
     const { fullName, email, password } = req.body;
 
-    // Validation
+    
     if (!fullName || !email || !password) {
       return res.status(400).json({ error: "All fields are required" });
     }
-
     if (fullName.trim().length < 2) {
       return res.status(400).json({ error: "Full name must be at least 2 characters" });
     }
-
     if (password.length < 6) {
       return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ error: "User already exists with this email" });
     }
 
-    // Create new user (password will be hashed automatically by the model)
+   
     const user = new User({
       fullName: fullName.trim(),
       email: email.toLowerCase().trim(),
-      password
+      password,
     });
 
     await user.save();
 
-    // Return success without password
+  
+    const token = generateToken(user._id);
+
     res.status(201).json({
       message: "Account created successfully",
+      token, // 🔑 return token here
       user: {
         id: user._id,
         fullName: user.fullName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
-
   } catch (error) {
     console.error("Signup error:", error.message);
-    
-    // Handle mongoose validation errors
-    if (error.name === 'ValidationError') {
-      const errors = Object.values(error.errors).map(err => err.message);
+
+    if (error.name === "ValidationError") {
+      const errors = Object.values(error.errors).map((err) => err.message);
       return res.status(400).json({ error: errors[0] });
     }
 
-    // Handle duplicate key error (email already exists)
     if (error.code === 11000) {
       return res.status(400).json({ error: "User already exists with this email" });
     }
@@ -61,38 +65,39 @@ const signup = async (req, res) => {
   }
 };
 
-// User login
+
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Validation
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // Find user by email
+   
     const user = await User.findOne({ email: email.toLowerCase().trim() });
     if (!user) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Check password
+
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Login successful
+
+    const token = generateToken(user._id);
+
     res.json({
       message: "Login successful",
+      token, 
       user: {
         id: user._id,
         fullName: user.fullName,
-        email: user.email
-      }
+        email: user.email,
+      },
     });
-
   } catch (error) {
     console.error("Login error:", error.message);
     res.status(500).json({ error: "Login failed" });
@@ -100,3 +105,5 @@ const login = async (req, res) => {
 };
 
 module.exports = { signup, login };
+
+
