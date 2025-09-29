@@ -41,3 +41,8 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
+
+// simple health endpoint for live smoke tests
+app.get('/api/health', (_req, res) => {
+  res.json({ ok: true, uptime: process.uptime() });
+});
