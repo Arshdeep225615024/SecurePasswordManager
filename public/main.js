@@ -345,6 +345,12 @@ function init() {
 
       if (!appName || !username || !password) return toast("App, username and password are required");
 
+      // Validate email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(username)) {
+        return toast("Please enter a valid email address");
+      }
+
       const { score } = evaluateStrength(password);
       if (score < 2) return toast("Password too weak to save");
 
