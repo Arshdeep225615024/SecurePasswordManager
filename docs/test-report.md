@@ -1,26 +1,35 @@
-# Test Coverage & Results (Playwright)
+# Test Coverage & Results Report (Playwright)
 
-[![E2E](https://github.com/Arshdeep225615024/SecurePasswordManager/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/Arshdeep225615024/SecurePasswordManager/actions/workflows/e2e.yml)
+## Test Cases
 
-_Last updated: **REPLACE_WITH_DATE**_
+### 🔹 smoke.spec.js
+1. Home page renders (chromium + webkit) → ✅ Passed  
+2. Strength meter reacts (chromium + webkit) → ✅ Passed  
 
-This project uses **Playwright** for E2E tests. CI runs:
-- **Mocked job**: fast checks with API/network mocks.
-- **Live job** (optional): points to a real URL when provided.
+### 🔹 critical.spec.js
+1. Breach check (mock HIBP in mocked mode) → ✅ Passed  
+2. Strength meter: weak → strong → very strong → ✅ Passed  
+3. Signup form: validates & submits → ✅ Passed  
 
-### Latest CI
-- **Workflow**: [e2e.yml](https://github.com/Arshdeep225615024/SecurePasswordManager/actions/workflows/e2e.yml)
-- **Artifacts** (HTML report, videos, traces): download from the latest run’s **Artifacts** section.
+### 🔹 live.smoke.spec.js
+1. Home loads and health is OK → ⏭ Skipped (chromium + webkit)  
 
-### Test Suites
-| Suite / File | Key Scenarios |
-|---|---|
-| `tests/smoke.spec.js` | Home renders, strength meter reacts |
-| `tests/critical.spec.js` | Strength meter weak→strong→very strong • Breach check (mock HIBP path) • Signup form validation & submit |
-| `tests/live.smoke.spec.js` | Home loads & `/health` OK (only with live base URL) |
+---
 
-### Run locally
-\`\`\`bash
-npm run test:e2e
-npx playwright show-report
-\`\`\`
+## Results Summary
+- **Total tests executed**: 12  
+- ✅ Passed: 10  
+- ⏭ Skipped: 2  
+- ❌ Failed: 0  
+
+---
+
+## Evidence
+- [Playwright HTML Report](../playwright-report/index.html)  
+- ![Dashboard Screenshot](screenshots/playwright-dashboard.png)
+
+---
+
+## Notes
+- Skipped tests in `live.smoke.spec.js` may be due to environment setup (e.g., health check endpoint not configured).  
+- No failing tests detected — coverage is good.  
