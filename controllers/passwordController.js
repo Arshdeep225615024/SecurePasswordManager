@@ -23,7 +23,7 @@ const savePassword = async (req, res) => {
       appName,
       username,
       password: encrypted,
-      owner: req.user.id ,
+      owner: userId,
       pwnedCount,
       lastChecked: new Date(),
     });
