@@ -141,7 +141,7 @@ Create a .env file:
 
 env
 Copy code
-MONGO_URI=mongodb://127.0.0.1:27017/securepasswordmanager
+MONGO_URI=mongodb+srv://s225615024_db_user:SecurePasswordManager@cluster0.dvzafac.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 SESSION_SECRET=your_session_secret_here
 Run the server:
 
