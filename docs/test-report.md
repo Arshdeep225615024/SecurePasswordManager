@@ -25,7 +25,7 @@
 ---
 
 ## Evidence
-- [Playwright HTML Report](../playwright-report/index.html)  
+- [Playwright HTML Report](../docs/playwright-report/index.html)  
 - ![Dashboard Screenshot](screenshots/playwright-dashboard.png)
 
 ---
