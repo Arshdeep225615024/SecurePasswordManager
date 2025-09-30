@@ -1,3 +1,4 @@
+// models/password.js
 const mongoose = require("mongoose");
 
 const passwordSchema = new mongoose.Schema({
@@ -8,11 +9,11 @@ const passwordSchema = new mongoose.Schema({
     content: { type: String, required: true },
     tag: { type: String, required: true },
   },
-  userId: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
-    required: true 
-  }
-}, { timestamps: true });
+  owner: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  pwnedCount: { type: Number, default: 0 },
+  lastChecked: { type: Date, default: null },
+}, {
+  timestamps: true
+});
 
 module.exports = mongoose.model("Password", passwordSchema);

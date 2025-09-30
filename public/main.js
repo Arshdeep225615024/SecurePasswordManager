@@ -1,3 +1,4 @@
+// public/main.js
 // ---------- Utilities ----------
 const $ = (sel) => document.querySelector(sel);
 
@@ -11,7 +12,7 @@ const toast = (msg) => {
   })();
   t.textContent = msg;
   t.classList.add("toast--show");
-  setTimeout(() => t.classList.remove("toast--show"), 1800);
+  setTimeout(() => t.classList.remove("toast--show"), 2200);
 };
 
 const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
@@ -46,7 +47,7 @@ function evaluateStrength(pw) {
   if (!hasUpper || !hasLower) tips.push("Mix UPPER + lower case.");
   if (!hasDigit) tips.push("Add a number.");
   if (!hasSymbol) tips.push("Add a symbol.");
-  if (commonPatterns) tips.push("Avoid common words.");
+  if (commonPatterns) tips.push("Avoid common words (e.g., 'password').");
   if (repeated) tips.push("Avoid repeated characters.");
 
   return { score, label: labels[score], tips };
@@ -68,22 +69,22 @@ function generatePassword({ length = 16, symbols = true } = {}) {
   return out.split("").sort(() => Math.random() - 0.5).join("");
 }
 
-// ---------- HIBP API ----------
+// ---------- HIBP API (frontend fallback) ----------
 async function checkHIBP(pw) {
-  const sha1 = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(pw));
-  const hex = Array.from(new Uint8Array(sha1)).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
-  const prefix = hex.slice(0, 5);
-  const suffix = hex.slice(5);
-
   try {
+    const sha1 = await crypto.subtle.digest("SHA-1", new TextEncoder().encode(pw));
+    const hex = Array.from(new Uint8Array(sha1)).map(b => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const prefix = hex.slice(0, 5);
+    const suffix = hex.slice(5);
     const res = await fetch(`https://api.pwnedpasswords.com/range/${prefix}`);
     if (!res.ok) throw new Error("HIBP error");
     const text = await res.text();
-    const match = text.split("\n").find(line => line.startsWith(suffix));
+    const lines = text.split("\n");
+    const match = lines.find(line => line.startsWith(suffix));
     if (!match) return { pwned: false, count: 0 };
     const count = parseInt(match.split(":")[1].trim(), 10);
     return { pwned: true, count };
-  } catch {
+  } catch (_e) {
     return { pwned: null, count: 0 };
   }
 }
@@ -109,6 +110,7 @@ function applyStrengthUI({ score, label, tips }) {
 }
 
 function setLoading(el, loading, text = "Checking…") {
+  if (!el) return;
   if (loading) {
     el.dataset.oldText = el.textContent;
     el.textContent = text;
@@ -119,25 +121,54 @@ function setLoading(el, loading, text = "Checking…") {
   }
 }
 
+// ---------- Socket.IO client ----------
+let socket = null;
+function initSocketForUser() {
+  try {
+    socket = io(); // served from /socket.io/socket.io.js
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    if (user && user.id) {
+      socket.on("connect", () => {
+        socket.emit("registerUser", user.id);
+      });
+    }
+
+    socket.on("breachAlert", (payload) => {
+      // payload: { appName, username, pwnedCount, passwordId }
+      toast(`⚠️ Breach alert: ${payload.appName} (${payload.username})`);
+      // highlight item in vault if present:
+      const el = document.querySelector(`#pw-${payload.passwordId}`);
+      if (el) {
+        el.textContent = payload.pwnedCount > 0 ? `⚠ Breached (${payload.pwnedCount})` : "OK";
+        el.classList.add("password-alert");
+        setTimeout(() => el.classList.remove("password-alert"), 5000);
+      }
+    });
+  } catch (err) {
+    console.warn("Socket init failed:", err);
+  }
+}
+
 // ---------- Password Vault ----------
 async function loadPasswords() {
   const list = $("#passwordList");
   if (!list) return;
 
-  const token = localStorage.getItem("token");
-  if (!token) {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userId = user && user.id;
+  if (!userId) {
     list.innerHTML = "<li>Please log in to see saved passwords.</li>";
     return;
   }
 
   try {
-    const res = await fetch("/api/passwords", {
-      headers: { "Authorization": `Bearer ${token}` }
-    });
+    const res = await fetch(`/api/passwords?userId=${encodeURIComponent(userId)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      list.innerHTML = `<li>Error: ${err.error || res.statusText}</li>`;
+      return;
+    }
     const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || "Failed to load");
-
     if (!data.length) {
       list.innerHTML = "<li>No passwords saved yet.</li>";
       return;
@@ -154,6 +185,7 @@ async function loadPasswords() {
         </div>
         <div class="vault-actions">
           <button class="showBtn" data-id="${pw.id}" data-password="${pw.password}">👁️</button>
+          <button class="copyBtn" data-id="${pw.id}" data-password="${pw.password}">📋</button>
           <button class="deleteBtn" data-id="${pw.id}">❌</button>
         </div>
       `;
@@ -165,6 +197,7 @@ async function loadPasswords() {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
         const span = $(`#pw-${id}`);
+        if (!span) return;
         if (span.textContent === "••••••••") {
           span.textContent = btn.dataset.password;
           btn.textContent = "🙈";
@@ -175,22 +208,34 @@ async function loadPasswords() {
       });
     });
 
+    // copy handlers
+    document.querySelectorAll(".copyBtn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(btn.dataset.password);
+          toast("Password copied to clipboard");
+        } catch {
+          toast("Copy failed");
+        }
+      });
+    });
+
     // delete handlers
     document.querySelectorAll(".deleteBtn").forEach(btn => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
         if (!confirm("Delete this password?")) return;
-
         try {
-          const del = await fetch(`/api/passwords/${id}`, {
-            method: "DELETE",
-            headers: { "Authorization": `Bearer ${token}` }
+          const user = JSON.parse(localStorage.getItem("user") || "{}");
+          const tokenless = await fetch(`/api/passwords/${id}`, {
+            method: "DELETE"
           });
-          if (!del.ok) {
-            const err = await del.json();
-            return toast("Delete failed: " + (err.error || del.statusText));
+          if (!tokenless.ok) {
+            const j = await tokenless.json().catch(()=>({}));
+            toast("Delete failed: " + (j.error || tokenless.statusText));
+            return;
           }
-          toast("Deleted successfully");
+          toast("Deleted");
           loadPasswords();
         } catch {
           toast("Network error while deleting");
@@ -206,6 +251,7 @@ async function loadPasswords() {
 // ---------- Init ----------
 function init() {
   const pwInput = $("#password");
+  const appInput = $("#appName");
   const checkBtn = $("#checkBtn");
   const suggestBtn = $("#suggestBtn");
   const copyBtn = $("#copyBtn");
@@ -215,68 +261,88 @@ function init() {
 
   // live strength
   let debounce;
-  pwInput.addEventListener("input", () => {
-    clearTimeout(debounce);
-    debounce = setTimeout(() => applyStrengthUI(evaluateStrength(pwInput.value)), 90);
-  });
+  if (pwInput) {
+    pwInput.addEventListener("input", () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => applyStrengthUI(evaluateStrength(pwInput.value)), 90);
+    });
+  }
 
   // toggle visibility
-  visibilityBtn.addEventListener("click", () => {
-    const isPw = pwInput.type === "password";
-    pwInput.type = isPw ? "text" : "password";
-    visibilityBtn.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
-  });
+  if (visibilityBtn && pwInput) {
+    visibilityBtn.addEventListener("click", () => {
+      const isPw = pwInput.type === "password";
+      pwInput.type = isPw ? "text" : "password";
+      visibilityBtn.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
+    });
+  }
 
-  // suggest strong password
-  suggestBtn.addEventListener("click", () => {
-    const suggestion = generatePassword({ length: 16, symbols: true });
-    pwInput.value = suggestion;  // Auto-fill into password input
-    pwInput.dispatchEvent(new Event('input'));  // Trigger strength analysis
-    toast("Generated a strong password");
-  });
+  // theme toggle (if present)
+  const themeBtn = $("#themeToggle");
+  if (themeBtn) {
+    themeBtn.addEventListener("click", () => {
+      document.documentElement.classList.toggle("theme-dark");
+    });
+  }
 
-  // copy password
-  copyBtn.addEventListener("click", async () => {
-    const text = pwInput.value || ($("#suggestion").textContent.replace(/^Suggested:\s*/, "") || "");
-    if (!text) return toast("Nothing to copy");
-    await navigator.clipboard.writeText(text);
-    toast("Copied to clipboard");
-  });
+  // suggest
+  if (suggestBtn) {
+    suggestBtn.addEventListener("click", () => {
+      const suggestion = generatePassword({ length: 16, symbols: true });
+      $("#suggestion").textContent = `Suggested: ${suggestion}`;
+      toast("Generated a strong password");
+    });
+  }
 
-  // reset form
-  resetBtn.addEventListener("click", () => {
-    applyStrengthUI({ score: 0, label: "—", tips: [] });
-    $("#breachResult").textContent = "";
-    $("#suggestion").textContent = "";
-  });
+  // copy
+  if (copyBtn) {
+    copyBtn.addEventListener("click", async () => {
+      const text = (pwInput && pwInput.value) || ($("#suggestion").textContent.replace(/^Suggested:\s*/, "") || "");
+      if (!text) return toast("Nothing to copy");
+      await navigator.clipboard.writeText(text);
+      toast("Copied to clipboard");
+    });
+  }
 
-  // breach check
-  checkBtn.addEventListener("click", async () => {
-    const pw = pwInput.value;
-    if (!pw) return toast("Enter a password first");
-    setLoading(checkBtn, true, "Checking…");
+  // reset
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      applyStrengthUI({ score: 0, label: "—", tips: [] });
+      $("#breachResult").textContent = "";
+      $("#suggestion").textContent = "";
+    });
+  }
 
-    const hibp = await checkHIBP(pw);
-    if (hibp.pwned === true) {
-      $("#breachResult").innerHTML = `⚠️ Found in <b>${hibp.count.toLocaleString()}</b> breaches.`;
-    } else if (hibp.pwned === false) {
-      $("#breachResult").textContent = "✅ No matches found in HIBP.";
-    } else {
-      $("#breachResult").textContent = "ℹ️ Breach check unavailable.";
-    }
+  // check breach
+  if (checkBtn) {
+    checkBtn.addEventListener("click", async () => {
+      const pw = pwInput && pwInput.value;
+      if (!pw) return toast("Enter a password first");
+      setLoading(checkBtn, true, "Checking…");
 
-    setLoading(checkBtn, false);
-  });
+      const hibp = await checkHIBP(pw);
+      if (hibp.pwned === true) {
+        $("#breachResult").innerHTML = `⚠️ Found in <b>${hibp.count.toLocaleString()}</b> breaches.`;
+      } else if (hibp.pwned === false) {
+        $("#breachResult").textContent = "✅ No matches found in HIBP.";
+      } else {
+        $("#breachResult").textContent = "ℹ️ Breach check unavailable.";
+      }
+      setLoading(checkBtn, false);
+    });
+  }
 
-  // save password
+  // save password (sends userId)
   if (saveBtn) {
     saveBtn.addEventListener("click", async () => {
       const appName = ($("#appName").value || "").trim();
       const username = ($("#username").value || "").trim();
       const password = ($("#password").value || "").trim();
-      const token = localStorage.getItem("token");
 
-      if (!token) return toast("Please log in first");
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const userId = user && user.id;
+      if (!userId) return toast("Please log in first");
+
       if (!appName || !username || !password) return toast("App, username and password are required");
 
       const { score } = evaluateStrength(password);
@@ -287,18 +353,18 @@ function init() {
       try {
         const res = await fetch("/api/save-password", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ appName, username, password })
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ appName, username, password, userId })
         });
-        const data = await res.json();
 
-        if (!res.ok) return toast(`Save failed: ${data.error || res.statusText}`);
+        const data = await res.json().catch(()=>({}));
+        if (!res.ok) {
+          return toast(`Save failed: ${(data && (data.error || data.message)) || res.statusText}`);
+        }
         toast(`✅ Saved for ${data.appName || appName}`);
-        loadPasswords(); // refresh vault
-      } catch {
+        loadPasswords();
+      } catch (err) {
+        console.error(err);
         toast("Network error while saving");
       } finally {
         setLoading(saveBtn, false);
@@ -308,9 +374,8 @@ function init() {
 
   // navbar update if logged in
   const nav = $(".nav__actions");
-  const token = localStorage.getItem("token");
-  if (token && nav) {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (user && user.id && nav) {
     nav.innerHTML = `<span>👤 ${user.fullName || user.email}</span> <button id="logoutBtn" class="btn btn--outline">Logout</button>`;
     $("#logoutBtn").addEventListener("click", () => {
       localStorage.clear();
@@ -318,9 +383,12 @@ function init() {
     });
   }
 
-  // initial render
+  // init socket and load vault
+  initSocketForUser();
+  loadPasswords();
+
+  // initial strength UI
   applyStrengthUI({ score: 0, label: "—", tips: [] });
-  loadPasswords(); // load vault on start
 }
 
 document.addEventListener("DOMContentLoaded", init);
