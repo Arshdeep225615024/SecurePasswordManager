@@ -190,3 +190,7 @@ Delete Password → DELETE /api/passwords/:id
 - [HaveIBeenPwned API](https://haveibeenpwned.com/API/v3)
 - [Socket.io Documentation](https://socket.io/docs/v4/)
 - [MongoDB Docs](https://www.mongodb.com/docs/)
+
+## Test Coverage
+See the [Test Coverage & Results Report](docs/test-report.md) for details, or open the Playwright HTML report in `playwright-report/index.html`.
+
