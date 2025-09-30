@@ -190,3 +190,9 @@ Delete Password → DELETE /api/passwords/:id
 - [HaveIBeenPwned API](https://haveibeenpwned.com/API/v3)
 - [Socket.io Documentation](https://socket.io/docs/v4/)
 - [MongoDB Docs](https://www.mongodb.com/docs/)
+
+## Test Coverage & Results
+
+[![E2E](https://github.com/Arshdeep225615024/SecurePasswordManager/actions/workflows/e2e.yml/badge.svg?branch=main)](https://github.com/Arshdeep225615024/SecurePasswordManager/actions/workflows/e2e.yml)
+
+See the full write-up here: [docs/test-report.md](docs/test-report.md)
