@@ -1,35 +1,33 @@
-const $ = (s) => document.querySelector(s);
-const toast = (msg) => { const t=$("#toast"); t.textContent=msg; t.classList.add("toast--show"); setTimeout(()=>t.classList.remove("toast--show"),2000); };
+// Toast function
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(() => toast.className = "toast", 3000);
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  const form = $("#loginForm");
-  const email = $("#email");
-  const password = $("#password");
-  const errorEl = $("#loginError");
-
-  $("#togglePw").addEventListener("click", () => {
-    password.type = password.type === "password" ? "text" : "password";
+// Toggle password visibility
+const toggleLoginPassword = document.getElementById("toggleLoginPassword");
+if (toggleLoginPassword) {
+  toggleLoginPassword.addEventListener("click", () => {
+    const pw = document.getElementById("loginPassword");
+    pw.type = pw.type === "password" ? "text" : "password";
   });
+}
 
-  form.addEventListener("submit", async (e) => {
+// Example: show toast on login error
+const loginForm = document.getElementById("loginForm");
+if (loginForm) {
+  loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.value.trim(), password: password.value })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        toast(`Welcome, ${data.user.fullName}!`);
-        setTimeout(()=>window.location.href="/",1200);
-      } else {
-        errorEl.textContent = data.error || "Login failed"; errorEl.style.display="block";
-      }
-    } catch {
-      errorEl.textContent = "Network error"; errorEl.style.display="block";
+    // You’ll replace this with actual auth later
+    const email = document.getElementById("loginEmail").value;
+    const pw = document.getElementById("loginPassword").value;
+    if (!email || !pw) {
+      showToast("Please fill in all fields.");
+    } else {
+      showToast("Logging in… (demo mode)");
+      // Call backend API here
     }
   });
-});
+}

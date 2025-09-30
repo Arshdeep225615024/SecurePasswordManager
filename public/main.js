@@ -399,3 +399,70 @@ function init() {
 }
 
 document.addEventListener("DOMContentLoaded", init);
+
+// Footer year
+document.getElementById("year").textContent = new Date().getFullYear();
+
+// Theme toggle
+const themeToggle = document.getElementById("themeToggle");
+if (themeToggle) {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") document.body.classList.add("dark");
+
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  });
+}
+
+// Toast
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(() => toast.className = "toast", 3000);
+}
+
+// Copy to clipboard
+const copyBtn = document.getElementById("copyBtn");
+if (copyBtn) {
+  copyBtn.addEventListener("click", () => {
+    const pw = document.getElementById("password").value;
+    if (pw) {
+      navigator.clipboard.writeText(pw);
+      showToast("Password copied!");
+    } else {
+      showToast("No password to copy.");
+    }
+  });
+}
+
+// Password generator modal
+const suggestBtn = document.getElementById("suggestBtn");
+if (suggestBtn) {
+  suggestBtn.addEventListener("click", () => {
+    const strongPassword = Math.random().toString(36).slice(-10) + "!A1";
+    document.getElementById("generatedPassword").textContent = strongPassword;
+    document.getElementById("passwordModal").style.display = "flex";
+  });
+}
+const closeModal = document.getElementById("closeModal");
+if (closeModal) {
+  closeModal.addEventListener("click", () => {
+    document.getElementById("passwordModal").style.display = "none";
+  });
+}
+
+// Strength tips
+const pwInput = document.getElementById("password");
+if (pwInput) {
+  pwInput.addEventListener("input", (e) => {
+    const pw = e.target.value;
+    const tips = [];
+    if (!/[0-9]/.test(pw)) tips.push("Add at least one number");
+    if (!/[A-Z]/.test(pw)) tips.push("Add an uppercase letter");
+    if (!/[!@#$%^&*]/.test(pw)) tips.push("Add a special character");
+    if (pw.length < 8) tips.push("Use at least 8 characters");
+    document.getElementById("tips").innerHTML = tips.map(t => `<li>${t}</li>`).join("");
+  });
+}

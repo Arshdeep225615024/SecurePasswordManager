@@ -18,6 +18,7 @@
         </a>
       </div>
       <div class="nav__actions">
+        <button id="themeToggle" class="btn btn--ghost">🌙</button>
         <a href="/login" id="loginBtn" class="btn btn--outline">Log in</a>
         <a href="/signup" id="signupBtn" class="btn btn--primary">Sign up</a>
       </div>
@@ -25,12 +26,14 @@
   </nav>
 
   <main class="app with-sidebar">
-    <!-- Sidebar (Password Vault) -->
+    <!-- Sidebar (Vault) -->
     <aside class="sidebar" id="vault">
       <h2>Your Saved Passwords</h2>
-      <ul id="passwordList" class="vault-list">
-        <li>Log in to see your saved passwords.</li>
-      </ul>
+      <div class="empty-state" id="vaultEmpty">
+        <img src="https://img.icons8.com/ios/100/lock--v1.png" alt="Vault Empty" />
+        <p>Log in to see your saved passwords.</p>
+      </div>
+      <ul id="passwordList" class="vault-list"></ul>
     </aside>
 
     <!-- Main content -->
@@ -94,9 +97,18 @@
     <small>© <span id="year"></span> SecurePasswordManager — SIT725</small>
   </footer>
 
-  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
+  <!-- Toast -->
   <div id="toast" class="toast"></div>
-  <script src="/socket.io/socket.io.js"></script>
+
+  <!-- Password Generator Modal -->
+  <div id="passwordModal" class="modal">
+    <div class="modal-content">
+      <h3>Generated Password</h3>
+      <p id="generatedPassword"></p>
+      <button id="closeModal" class="btn btn--primary">Close</button>
+    </div>
+  </div>
+
   <script src="/main.js"></script>
 </body>
 </html>

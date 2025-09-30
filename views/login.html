@@ -3,34 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Log in · SecurePasswordManager</title>
+  <title>Login – SecurePasswordManager</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <nav class="nav">
-    <div class="nav__inner">
-      <div class="nav__brand"><a href="/" class="nav__logo"><strong>SecurePasswordManager</strong></a></div>
-      <div class="nav__actions"><a href="/signup" class="btn btn--primary">Sign up</a></div>
-    </div>
-  </nav>
-
   <main class="app">
-    <h1 class="app__title">Welcome back</h1>
-    <section class="card auth-card">
-      <form id="loginForm" class="grid">
+    <section class="card card--center">
+      <h1>Log in</h1>
+      <form id="loginForm" class="grid" novalidate>
         <label class="field">
-          <span>Email</span>
-          <input id="email" type="email" required />
+          <span class="field__label">Email</span>
+          <input id="loginEmail" type="email" placeholder="you@example.com" required />
         </label>
-        <label class="field">
-          <span>Password</span>
+        <label class="field field--password">
+          <span class="field__label">Password</span>
           <div class="field__control">
-            <input id="password" type="password" required />
-            <button type="button" id="togglePw">👁️</button>
+            <input id="loginPassword" type="password" placeholder="Your password" required />
+            <button type="button" class="btn btn--ghost field__suffix" id="toggleLoginPassword">👁️</button>
           </div>
         </label>
-        <div id="loginError" class="error-message"></div>
-        <button id="loginSubmit" type="submit" class="btn btn--primary">Log in</button>
+        <button type="submit" class="btn btn--primary">Log in</button>
       </form>
     </section>
   </main>
