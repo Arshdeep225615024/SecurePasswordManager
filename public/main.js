@@ -227,10 +227,11 @@ function init() {
     visibilityBtn.setAttribute("aria-label", isPw ? "Hide password" : "Show password");
   });
 
-  // suggest password
+  // suggest strong password
   suggestBtn.addEventListener("click", () => {
     const suggestion = generatePassword({ length: 16, symbols: true });
-    $("#suggestion").textContent = `Suggested: ${suggestion}`;
+    pwInput.value = suggestion;  // Auto-fill into password input
+    pwInput.dispatchEvent(new Event('input'));  // Trigger strength analysis
     toast("Generated a strong password");
   });
 
